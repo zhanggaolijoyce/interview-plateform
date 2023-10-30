@@ -12,7 +12,7 @@ db.createCollection("users")
 // Optionally, you can define indexes or validations for the "users" collection here
 
 // Insert a sample user with an "id" field
-db.users.insert({
+db.users.insertOne({
   id: 1, // Unique ID for the user
   name: "John Doe",
   email: "johndoe@example.com",
@@ -27,10 +27,15 @@ db.createCollection("questions")
 // Optionally, you can define indexes or validations for the "questions" collection here
 
 // Insert a sample question with an "id" field
-db.questions.insert({
+db.questions.insertOne({
   id: 1, // Unique ID for the question
   title: "Sample Question",
-  content: "This is a sample interview question.",
-  postedBy: "John Doe",
-  tags: ["interview", "sample"],
+  description: "This is a sample interview question.",
+  createdBy: {
+    id:1,
+    name: "John Doe",
+    email: "johndoe@example.com",
+  },
+  complexity: "Easy",
+  //tags: ["interview", "sample"],
 })

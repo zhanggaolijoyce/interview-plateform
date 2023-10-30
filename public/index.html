@@ -10,6 +10,7 @@
 
   <script src="https://unpkg.com/@babel/polyfill@7/dist/polyfill.min.js"></script>
   <script src="https://unpkg.com/whatwg-fetch@3.0.0/dist/fetch.umd.js"></script>
+
   <style>
     table.bordered-table th, td {border: 1px solid silver; padding: 4px;}
     table.bordered-table {border-collapse: collapse;}
@@ -17,6 +18,12 @@
 </head>
 
 <body>
+  <div id="navigation">
+    <button onclick="showLandingPage()">Home Page</button>
+    <button onclick="showUserComponent()">User Page</button>
+    <button onclick="showQuestionComponent()">Questions Page</button>
+  </div>
+
   <div id="contents"></div>
 
   <script src="/App.js"></script>

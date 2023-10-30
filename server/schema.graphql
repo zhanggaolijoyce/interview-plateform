@@ -1,9 +1,9 @@
 #################### User Service Related APIs ####################
 ## Types and Inputs ##
 type User {
-  id: ID!
-  name: String!
-  email: String!
+  id: ID
+  name: String
+  email: String
   profile: UserProfile
 }
 
@@ -20,31 +20,31 @@ input UserProfileInput {
 }
 
 type Question {
-  id: ID!
-  title: String!
-  description: String!
+  id: ID
+  title: String
+  description: String
   complexity: String
-  createdBy: User!
+  createdBy: User
 }
 
 ## Queries ##
 type Query {
   #USV related  
-  getUserProfile: User
+  getUserProfile(id: ID, name: String, email: String, profile: UserProfileInput): User
    
   #QSV related
-  getAllQuestions: [Question]
+  getAllQuestions(id: ID, title: String, description: String, complexity: String): [Question]
 }
 
 ## Mutations ##
 type Mutation {
   #USV Related  
-  signUpUser(name: String!, email: String!, profile: UserProfileInput!): User
-  updateUserProfile(profile: UserProfileInput!): User
-  deregisterUser: ID
+  signUpUser(id: ID, name: String, email: String, profile: UserProfileInput): User
+  updateUserProfile(profile: UserProfileInput): User
+  deregisterUser(id: ID): ID
   
   #QSV Related
-  addQuestion(title: String!, description: String!, complexity: String): Question
-  deleteQuestion(id: ID!): ID
-  updateQuestion(id: ID!, title: String, description: String, complexity: String): Question
+  addQuestion(id: ID, title: String, description: String, complexity: String): Question
+  deleteQuestion(id: ID): ID
+  updateQuestion(id: ID, title: String, description: String, complexity: String): Question
 }
