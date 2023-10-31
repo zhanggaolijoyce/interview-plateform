@@ -1,6 +1,25 @@
+const buttonStyle = {
+  backgroundColor: "#0074D9",
+  color: "#ffffff",
+  padding: "8px 16px",
+  border: "none",
+  borderRadius: "5px",
+  cursor: "pointer",
+  fontSize: "16px",
+  margin: "10px",
+};
+
+const inputStyle = {
+  border: "1px solid #ccc", 
+  padding: "10px", 
+  borderRadius: "5px", 
+  fontSize: "14px", 
+  margin: "5px", 
+};
+
 async function graphQLFetch(query, variables = {}) {
   try {
-    console.log(query)
+    console.log(query);
     const response = await fetch("/graphql", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -36,7 +55,7 @@ class SignUpUserForm extends React.Component {
 
   handleSubmit = (e) => {
     e.preventDefault();
-    const { id, name, email, age, location  } = this.state;
+    const { id, name, email, age, location } = this.state;
     // Prepare user data for GraphQL call
     const userData = {
       id,
@@ -53,32 +72,42 @@ class SignUpUserForm extends React.Component {
   };
 
   render() {
+    const signUpStyle = {
+      border: "1px solid #ccc",
+      padding: "10px",
+      borderRadius: "5px",
+      margin: "10px",
+      backgroundColor: "#cdb4db",
+    };
+
     return (
-      <div>
+      <div style={signUpStyle}>
         <h2>Sign Up</h2>
         <form name="signup" onSubmit={this.handleSubmit}>
           {/* Render form input fields for user registration */}
           <div>
             <label htmlFor="id">ID:</label>
-            <input type="text" name="id" placeholder="ID" />
+            <input type="text" name="id" placeholder="ID" style={inputStyle} />
           </div>
           <div>
             <label htmlFor="name">Name:</label>
-            <input type="text" name="name" placeholder="name" />
+            <input type="text" name="name" placeholder="name" style={inputStyle} />
           </div>
           <div>
             <label htmlFor="email">Email:</label>
-            <input type="text" name="email" placeholder="email" />
+            <input type="text" name="email" placeholder="email" style={inputStyle} />
           </div>
           <div>
             <label htmlFor="age">Age:</label>
-            <input type="text" name="age" placeholder="age" />
+            <input type="text" name="age" placeholder="age" style={inputStyle} />
           </div>
           <div>
             <label htmlFor="location">Location:</label>
-            <input type="text" name="location" placeholder="location" />
+            <input type="text" name="location" placeholder="location" style={inputStyle} />
           </div>
-          <button type="submit">Sign Up</button>
+          <button type="submit" style={buttonStyle}>
+            Sign Up
+          </button>
         </form>
       </div>
     );
@@ -114,9 +143,8 @@ class UserService extends React.Component {
           }
         `;
 
-      const  { id, name, email, profile } = this.state;
-      const variables =  { id, name, email, profile };
-      
+      const { id, name, email, profile } = this.state;
+      const variables = { id, name, email, profile };
 
       const data = await graphQLFetch(query, variables);
       // const data = await graphQLFetch(query);
@@ -144,8 +172,8 @@ class UserService extends React.Component {
             }
           }
         `;
-      
-      const  { id, name, email, profile } = profileData;
+
+      const { id, name, email, profile } = profileData;
       const variables = { id, name, email, profile };
 
       const data = await graphQLFetch(mutation, variables);
@@ -169,12 +197,11 @@ class UserService extends React.Component {
         `;
 
       const { id, name, email, profile } = this.state;
-      const variables =  { id, name, email, profile };
+      const variables = { id, name, email, profile };
 
       const data = await graphQLFetch(mutation, variables);
       this.setState({ user: data.deregisterUser });
       // Handle successful deregistration (e.g., show a success message)
-      
     } catch (error) {
       console.error("Error deregistering user:", error);
       // Handle errors as needed (e.g., display an error message)
@@ -182,7 +209,7 @@ class UserService extends React.Component {
   };
 
   handleSignUpUser = async (userData) => {
-    console.log(userData)
+    console.log(userData);
     const { id, name, email, profile } = userData;
 
     // Define the GraphQL mutation query for signing up a user
@@ -227,7 +254,6 @@ class UserService extends React.Component {
         <UserProfileDisplay user={user} />
         <UserProfileUpdateForm onUpdateProfile={this.handleUpdateProfile} />
         <DeregisterButton onDeregister={this.handleDeregisterUser} />
-        
       </div>
     );
   }
@@ -263,8 +289,8 @@ class QuestionService extends React.Component {
             }
           }
         `;
-      const  { id, title, description, complexity, createdBy } = this.state;
-      const variables =  { id, title, description, complexity, createdBy };
+      const { id, title, description, complexity, createdBy } = this.state;
+      const variables = { id, title, description, complexity, createdBy };
 
       const data = await graphQLFetch(query, variables);
       this.setState({ questions: data.getAllQuestions });
@@ -374,12 +400,20 @@ class UserProfileDisplay extends React.Component {
   render() {
     const { user } = this.props;
 
+    const containerStyle = {
+      border: "1px solid #ccc",
+      padding: "10px",
+      borderRadius: "5px",
+      margin: "10px",
+      backgroundColor: "#bde0fe",
+    };
+
     if (!user) {
       return <div>No user data available.</div>;
     }
 
     return (
-      <div>
+      <div style={containerStyle}>
         <h2>User Profile</h2>
         <p>ID: {user.id}</p>
         <p>Name: {user.name}</p>
@@ -425,8 +459,16 @@ class UserProfileUpdateForm extends React.Component {
   };
 
   render() {
+    const updateStyle = {
+      border: "1px solid #ccc",
+      padding: "10px",
+      borderRadius: "5px",
+      margin: "10px",
+      backgroundColor: "#d8e2dc",
+    };
+
     return (
-      <div>
+      <div style={updateStyle}>
         <h2>Update User Profile</h2>
         <form onSubmit={this.handleSubmit}>
           <div>
@@ -436,6 +478,7 @@ class UserProfileUpdateForm extends React.Component {
               name="age"
               value={this.state.age}
               onChange={this.handleInputChange}
+              style={inputStyle}
             />
           </div>
           <div>
@@ -445,9 +488,12 @@ class UserProfileUpdateForm extends React.Component {
               name="location"
               value={this.state.location}
               onChange={this.handleInputChange}
+              style={inputStyle}
             />
           </div>
-          <button type="submit">Update Profile</button>
+          <button type="submit" style={buttonStyle}>
+            Update Profile
+          </button>
         </form>
       </div>
     );
@@ -461,10 +507,20 @@ class DeregisterButton extends React.Component {
   };
 
   render() {
+    const deregisterStyle = {
+      border: "1px solid #ccc",
+      padding: "10px",
+      borderRadius: "5px",
+      margin: "10px",
+      backgroundColor: "#ffe5d9",
+    };
+
     return (
-      <div>
+      <div style={deregisterStyle}>
         <h2>Deregister User</h2>
-        <button onClick={this.handleClick}>Deregister User</button>
+        <button onClick={this.handleClick} style={buttonStyle}>
+          Deregister User
+        </button>
       </div>
     );
   }
@@ -474,12 +530,20 @@ class QuestionList extends React.Component {
   render() {
     const { questions, onDeleteQuestion, onUpdateQuestion } = this.props;
 
+    const containerStyle = {
+      border: "1px solid #ccc",
+      padding: "10px",
+      borderRadius: "5px",
+      margin: "10px",
+      backgroundColor: "#bde0fe",
+    };
+
     if (questions.length === 0) {
       return <div>No questions available.</div>;
     }
 
     return (
-      <div>
+      <div style={containerStyle}>
         <h2>Question List</h2>
         {questions.map((question) => (
           <div key={question.id}>
@@ -487,7 +551,10 @@ class QuestionList extends React.Component {
             <p>Description: {question.description}</p>
             <p>Complexity: {question.complexity}</p>
             {/* <p>Created By: {question.createdBy}</p> */}
-            <button onClick={() => onDeleteQuestion(question.id)}>
+            <button
+              onClick={() => onDeleteQuestion(question.id)}
+              style={buttonStyle}
+            >
               Delete
             </button>
             {/* Add an update button and functionality here */}
@@ -540,17 +607,26 @@ class QuestionForm extends React.Component {
   };
 
   render() {
+    const addStyle = {
+      border: "1px solid #ccc",
+      padding: "10px",
+      borderRadius: "5px",
+      margin: "10px",
+      backgroundColor: "#cdb4db",
+    };
+
     return (
-      <div>
+      <div style={addStyle}>
         <h2>Add New Question</h2>
         <form onSubmit={this.handleSubmit}>
-        <div>
+          <div>
             <label htmlFor="id">ID:</label>
             <input
               type="text"
               name="id"
               value={this.state.id}
               onChange={this.handleInputChange}
+              style={inputStyle}
             />
           </div>
           <div>
@@ -560,6 +636,7 @@ class QuestionForm extends React.Component {
               name="title"
               value={this.state.title}
               onChange={this.handleInputChange}
+              style={inputStyle}
             />
           </div>
           <div>
@@ -568,6 +645,7 @@ class QuestionForm extends React.Component {
               name="description"
               value={this.state.description}
               onChange={this.handleInputChange}
+              style={inputStyle}
             />
           </div>
           <div>
@@ -577,9 +655,12 @@ class QuestionForm extends React.Component {
               name="complexity"
               value={this.state.complexity}
               onChange={this.handleInputChange}
+              style={inputStyle}
             />
           </div>
-          <button type="submit">Add Question</button>
+          <button type="submit" style={buttonStyle}>
+            Add Question
+          </button>
         </form>
       </div>
     );
@@ -628,17 +709,26 @@ class UpdateQuestionForm extends React.Component {
   };
 
   render() {
+    const updateStyle = {
+      border: "1px solid #ccc",
+      padding: "10px",
+      borderRadius: "5px",
+      margin: "10px",
+      backgroundColor: "#d8e2dc",
+    };
+
     return (
-      <div>
+      <div style={updateStyle}>
         <h2>Update Question</h2>
         <form onSubmit={this.handleSubmit}>
-        <div>
+          <div>
             <label htmlFor="id">ID:</label>
             <input
               type="text"
               name="id"
               value={this.state.id}
               onChange={this.handleInputChange}
+              style={inputStyle}
             />
           </div>
           <div>
@@ -648,6 +738,7 @@ class UpdateQuestionForm extends React.Component {
               name="title"
               value={this.state.title}
               onChange={this.handleInputChange}
+              style={inputStyle}
             />
           </div>
           <div>
@@ -656,6 +747,7 @@ class UpdateQuestionForm extends React.Component {
               name="description"
               value={this.state.description}
               onChange={this.handleInputChange}
+              style={inputStyle}
             />
           </div>
           <div>
@@ -665,22 +757,45 @@ class UpdateQuestionForm extends React.Component {
               name="complexity"
               value={this.state.complexity}
               onChange={this.handleInputChange}
+              style={inputStyle}
             />
           </div>
-          <button type="submit">Update Question</button>
+          <button type="submit" style={buttonStyle}>
+            Update Question
+          </button>
         </form>
       </div>
     );
   }
 }
 
-
 class LandingPage extends React.Component {
   render() {
+    const titleStyle = {
+      fontSize: "36px",
+      color: "#333"
+    };
+
+
+    const paragraphStyle = {
+      fontSize: '18px',
+      color: "#666"
+    };
+
+    const emphasizedParagraphStyle = {
+      fontSize: "24px",
+      color: "#FF5733"
+    }
+
     return (
       <div>
-        <h1>Welcome to the PeerPrep</h1>
-        <p>Click the buttons above to navigate to different components</p>
+        <h1 style={titleStyle}>Welcome to the PeerPrep</h1>
+        <p style={paragraphStyle}>--Exploring, Learning, and Sharing</p>
+        <p style={paragraphStyle}>
+          --We are here to make your interview preparation better. Explore, add,
+          update, and delete questions easily with our user-friendly platform.
+        </p>
+        <p style={emphasizedParagraphStyle}>Click the buttons above to navigate to different components</p>
       </div>
     );
   }
@@ -688,18 +803,17 @@ class LandingPage extends React.Component {
 
 function showLandingPage() {
   const landingComponent = <LandingPage />;
-  ReactDOM.render(landingComponent, document.getElementById('contents'));
+  ReactDOM.render(landingComponent, document.getElementById("contents"));
 }
 function showUserComponent() {
   const userComponent = <UserService />;
-  ReactDOM.render(userComponent, document.getElementById('contents'));
+  ReactDOM.render(userComponent, document.getElementById("contents"));
 }
 
 function showQuestionComponent() {
   const questionComponent = <QuestionService />;
-  ReactDOM.render(questionComponent, document.getElementById('contents'));
+  ReactDOM.render(questionComponent, document.getElementById("contents"));
 }
-
 
 showLandingPage();
 
