@@ -10,11 +10,11 @@ const buttonStyle = {
 };
 
 const inputStyle = {
-  border: "1px solid #ccc", 
-  padding: "10px", 
-  borderRadius: "5px", 
-  fontSize: "14px", 
-  margin: "5px", 
+  border: "1px solid #ccc",
+  padding: "10px",
+  borderRadius: "5px",
+  fontSize: "14px",
+  margin: "5px",
 };
 
 async function graphQLFetch(query, variables = {}) {
@@ -45,75 +45,6 @@ async function graphQLFetch(query, variables = {}) {
   }
 }
 
-class SignUpUserForm extends React.Component {
-  constructor() {
-    super();
-    this.state = {
-      user: null,
-    };
-  }
-
-  handleSubmit = (e) => {
-    e.preventDefault();
-    const { id, name, email, age, location } = this.state;
-    // Prepare user data for GraphQL call
-    const userData = {
-      id,
-      name,
-      email,
-      profile: {
-        age: parseInt(age),
-        location,
-      },
-    };
-
-    // Call the provided callback function to register the user
-    this.props.handleSignUpUser(userData);
-  };
-
-  render() {
-    const signUpStyle = {
-      border: "1px solid #ccc",
-      padding: "10px",
-      borderRadius: "5px",
-      margin: "10px",
-      backgroundColor: "#cdb4db",
-    };
-
-    return (
-      <div style={signUpStyle}>
-        <h2>Sign Up</h2>
-        <form name="signup" onSubmit={this.handleSubmit}>
-          {/* Render form input fields for user registration */}
-          <div>
-            <label htmlFor="id">ID:</label>
-            <input type="text" name="id" placeholder="ID" style={inputStyle} />
-          </div>
-          <div>
-            <label htmlFor="name">Name:</label>
-            <input type="text" name="name" placeholder="name" style={inputStyle} />
-          </div>
-          <div>
-            <label htmlFor="email">Email:</label>
-            <input type="text" name="email" placeholder="email" style={inputStyle} />
-          </div>
-          <div>
-            <label htmlFor="age">Age:</label>
-            <input type="text" name="age" placeholder="age" style={inputStyle} />
-          </div>
-          <div>
-            <label htmlFor="location">Location:</label>
-            <input type="text" name="location" placeholder="location" style={inputStyle} />
-          </div>
-          <button type="submit" style={buttonStyle}>
-            Sign Up
-          </button>
-        </form>
-      </div>
-    );
-  }
-}
-
 class UserService extends React.Component {
   constructor(props) {
     super(props);
@@ -129,7 +60,8 @@ class UserService extends React.Component {
 
   async fetchUserProfile() {
     try {
-      const query = `
+      if (this.state.user) {
+        const query = `
           query($id: ID, $name: String, $email: String, $profile: UserProfileInput) {
             getUserProfile(id: $id, name: $name, email: $email, profile: $profile) {
               id
@@ -143,13 +75,14 @@ class UserService extends React.Component {
           }
         `;
 
-      const { id, name, email, profile } = this.state;
-      const variables = { id, name, email, profile };
+        const { id, name, email, profile } = this.state;
+        const variables = { id, name, email, profile };
 
-      const data = await graphQLFetch(query, variables);
-      // const data = await graphQLFetch(query);
-      console.log("Response data:", data);
-      this.setState({ user: data.getUserProfile });
+        const data = await graphQLFetch(query, variables);
+        // const data = await graphQLFetch(query);
+        console.log("Response data:", data);
+        // this.setState({ user: data.getUserProfile });
+      }
     } catch (error) {
       console.error("Error fetching user profile:", error);
       // Handle errors as needed (e.g., display an error message)
@@ -160,11 +93,11 @@ class UserService extends React.Component {
     // Implement logic to update user profile using the "updateUserProfile" mutation
     try {
       const mutation = `
-          mutation UpdateUserProfile($profile: UserProfileInput) {
-            updateUserProfile(profile: $profile) {
-              id
-              name
-              email
+          mutation UpdateUserProfile( $id: ID, $profile: UserProfileInput) {
+            updateUserProfile(id: $id, profile: $profile) {
+              id,
+              name,
+              email,
               profile {
                 age
                 location
@@ -173,8 +106,12 @@ class UserService extends React.Component {
           }
         `;
 
-      const { id, name, email, profile } = profileData;
+      const id = this.state.user.id;
+      const name = this.state.user.name;
+      const email = this.state.user.email;
+      const { profile } = profileData;
       const variables = { id, name, email, profile };
+      // console.log(variables);
 
       const data = await graphQLFetch(mutation, variables);
       this.setState({ user: data.updateUserProfile });
@@ -189,18 +126,24 @@ class UserService extends React.Component {
     // Implement logic to deregister the user using the "deregisterUser" mutation
     try {
       const mutation = `
-          mutation DeregisterUser($id: ID) {
-            deregisterUser(id: $id) {
-              id
-            }
+          mutation DeregisterUser( $id: ID ) {
+            deregisterUser( id: $id ) 
           }
         `;
 
-      const { id, name, email, profile } = this.state;
-      const variables = { id, name, email, profile };
+      const id = this.state.user.id;
+      const variables = { id };
+      // console.log(variables);
 
       const data = await graphQLFetch(mutation, variables);
-      this.setState({ user: data.deregisterUser });
+      const success = data.deregisterUser;
+      if(success){
+        this.setState({ user: null });
+      } else {
+        console.log("Deregister failed")
+      }
+
+
       // Handle successful deregistration (e.g., show a success message)
     } catch (error) {
       console.error("Error deregistering user:", error);
@@ -209,7 +152,6 @@ class UserService extends React.Component {
   };
 
   handleSignUpUser = async (userData) => {
-    console.log(userData);
     const { id, name, email, profile } = userData;
 
     // Define the GraphQL mutation query for signing up a user
@@ -232,9 +174,10 @@ class UserService extends React.Component {
 
     try {
       // Make the GraphQL call using the graphQLFetch function
+      console.log(this.state.user);
       const data = await graphQLFetch(signUpUserMutation, variables);
       this.setState({ user: data.signUpUser });
-      this.fetchUserProfile();
+      // this.fetchUserProfile();
 
       // Handle the response data as needed (e.g., update UI, show success message)
       console.log("User signed up:", data.signUpUser);
@@ -247,13 +190,251 @@ class UserService extends React.Component {
 
   render() {
     const { user } = this.state;
+    console.log(user);
+
+    if (!user) {
+      return (
+        <div>
+          <SignUpUserForm handleSignUpUser={this.handleSignUpUser} />
+        </div>
+      );
+    } else {
+      return (
+        <div>
+          <UserProfileDisplay user={user} />
+          <UserProfileUpdateForm onUpdateProfile={this.handleUpdateProfile} />
+          <DeregisterButton onDeregister={this.handleDeregisterUser} />
+        </div>
+      );
+    }
+  }
+}
+
+class SignUpUserForm extends React.Component {
+  constructor() {
+    super();
+    this.state = {
+      user: null,
+    };
+  }
+
+  handleSubmit = (e) => {
+    e.preventDefault();
+    const form = document.forms.signup;
+    // Prepare user data for GraphQL call
+    const userData = {
+      id: form.id.value,
+      name: form.name.value,
+      email: form.email.value,
+      profile: {
+        age: form.age.value,
+        location: form.location.value,
+      },
+    };
+
+    // Call the provided callback function to register the user
+    this.props.handleSignUpUser(userData);
+
+    // Reset form fields
+    this.setState({
+      id: "",
+      name: "",
+      email: "",
+      age: "",
+      location: "",
+    });
+  };
+
+  render() {
+    const signUpStyle = {
+      border: "1px solid #ccc",
+      padding: "10px",
+      borderRadius: "5px",
+      margin: "10px",
+      backgroundColor: "#cdb4db",
+    };
 
     return (
-      <div>
-        <SignUpUserForm handleSignUpUser={this.handleSignUpUser} />
-        <UserProfileDisplay user={user} />
-        <UserProfileUpdateForm onUpdateProfile={this.handleUpdateProfile} />
-        <DeregisterButton onDeregister={this.handleDeregisterUser} />
+      <div style={signUpStyle}>
+        <h2>Sign Up</h2>
+        <form name="signup" onSubmit={this.handleSubmit}>
+          {/* Render form input fields for user registration */}
+          <div>
+            <label htmlFor="id">ID:</label>
+            <input type="text" name="id" placeholder="ID" style={inputStyle} />
+          </div>
+          <div>
+            <label htmlFor="name">Name:</label>
+            <input
+              type="text"
+              name="name"
+              placeholder="name"
+              style={inputStyle}
+            />
+          </div>
+          <div>
+            <label htmlFor="email">Email:</label>
+            <input
+              type="text"
+              name="email"
+              placeholder="email"
+              style={inputStyle}
+            />
+          </div>
+          <div>
+            <label htmlFor="age">Age:</label>
+            <input
+              type="text"
+              name="age"
+              placeholder="age"
+              style={inputStyle}
+            />
+          </div>
+          <div>
+            <label htmlFor="location">Location:</label>
+            <input
+              type="text"
+              name="location"
+              placeholder="location"
+              style={inputStyle}
+            />
+          </div>
+          <button type="submit" style={buttonStyle}>
+            Sign Up
+          </button>
+        </form>
+      </div>
+    );
+  }
+}
+
+class UserProfileDisplay extends React.Component {
+  render() {
+    const { user } = this.props;
+
+    const containerStyle = {
+      border: "1px solid #ccc",
+      padding: "10px",
+      borderRadius: "5px",
+      margin: "10px",
+      backgroundColor: "#bde0fe",
+    };
+
+    if (!user) {
+      return <div>No user data available.</div>;
+    }
+
+    return (
+      <div style={containerStyle}>
+        <h2>User Profile</h2>
+        <p>ID: {user.id}</p>
+        <p>Name: {user.name}</p>
+        <p>Email: {user.email}</p>
+        <p>Age: {user.profile.age}</p>
+        <p>Location: {user.profile.location}</p>
+      </div>
+    );
+  }
+}
+
+class UserProfileUpdateForm extends React.Component {
+  constructor() {
+    super();
+    // Initialize form state
+    this.state = {
+      age: "",
+      location: "",
+    };
+  }
+
+  handleInputChange = (e) => {
+    const { name, value } = e.target;
+    this.setState({ [name]: value });
+  };
+
+  handleSubmit = (e) => {
+    e.preventDefault();
+    const form = document.forms.update;
+    const profileData = {
+      profile: {
+        age: form.age.value,
+        location: form.location.value,
+      },
+    };
+
+    // Call the provided callback function to update the user's profile
+    this.props.onUpdateProfile(profileData);
+
+    // Reset form fields
+    this.setState({
+      age: "",
+      location: "",
+    });
+  };
+
+  render() {
+    const updateStyle = {
+      border: "1px solid #ccc",
+      padding: "10px",
+      borderRadius: "5px",
+      margin: "10px",
+      backgroundColor: "#d8e2dc",
+    };
+
+    return (
+      <div style={updateStyle}>
+        <h2>Update User Profile</h2>
+        <form name="update" onSubmit={this.handleSubmit}>
+          <div>
+            <label htmlFor="age">Age:</label>
+            <input
+              type="number"
+              name="age"
+              value={this.state.age}
+              onChange={this.handleInputChange}
+              style={inputStyle}
+            />
+          </div>
+          <div>
+            <label htmlFor="location">Location:</label>
+            <input
+              type="text"
+              name="location"
+              value={this.state.location}
+              onChange={this.handleInputChange}
+              style={inputStyle}
+            />
+          </div>
+          <button type="submit" style={buttonStyle}>
+            Update Profile
+          </button>
+        </form>
+      </div>
+    );
+  }
+}
+
+class DeregisterButton extends React.Component {
+  handleClick = () => {
+    // Call the provided callback function to deregister the user
+    this.props.onDeregister();
+  };
+
+  render() {
+    const deregisterStyle = {
+      border: "1px solid #ccc",
+      padding: "10px",
+      borderRadius: "5px",
+      margin: "10px",
+      backgroundColor: "#ffe5d9",
+    };
+
+    return (
+      <div style={deregisterStyle}>
+        <h2>Deregister User</h2>
+        <button onClick={this.handleClick} style={buttonStyle}>
+          Deregister User
+        </button>
       </div>
     );
   }
@@ -391,136 +572,6 @@ class QuestionService extends React.Component {
         />
         <QuestionForm onAddQuestion={this.handleAddQuestion} />
         <UpdateQuestionForm onUpdateQuestion={this.handleUpdateQuestion} />
-      </div>
-    );
-  }
-}
-
-class UserProfileDisplay extends React.Component {
-  render() {
-    const { user } = this.props;
-
-    const containerStyle = {
-      border: "1px solid #ccc",
-      padding: "10px",
-      borderRadius: "5px",
-      margin: "10px",
-      backgroundColor: "#bde0fe",
-    };
-
-    if (!user) {
-      return <div>No user data available.</div>;
-    }
-
-    return (
-      <div style={containerStyle}>
-        <h2>User Profile</h2>
-        <p>ID: {user.id}</p>
-        <p>Name: {user.name}</p>
-        <p>Email: {user.email}</p>
-        <p>Age: {user.profile.age}</p>
-        <p>Location: {user.profile.location}</p>
-      </div>
-    );
-  }
-}
-
-class UserProfileUpdateForm extends React.Component {
-  constructor() {
-    super();
-    // Initialize form state
-    this.state = {
-      age: "",
-      location: "",
-    };
-  }
-
-  handleInputChange = (e) => {
-    const { name, value } = e.target;
-    this.setState({ [name]: value });
-  };
-
-  handleSubmit = (e) => {
-    e.preventDefault();
-    const { age, location } = this.state;
-    const profileData = {
-      age: parseInt(age),
-      location,
-    };
-
-    // Call the provided callback function to update the user's profile
-    this.props.onUpdateProfile(profileData);
-
-    // Reset form fields
-    this.setState({
-      age: "",
-      location: "",
-    });
-  };
-
-  render() {
-    const updateStyle = {
-      border: "1px solid #ccc",
-      padding: "10px",
-      borderRadius: "5px",
-      margin: "10px",
-      backgroundColor: "#d8e2dc",
-    };
-
-    return (
-      <div style={updateStyle}>
-        <h2>Update User Profile</h2>
-        <form onSubmit={this.handleSubmit}>
-          <div>
-            <label htmlFor="age">Age:</label>
-            <input
-              type="number"
-              name="age"
-              value={this.state.age}
-              onChange={this.handleInputChange}
-              style={inputStyle}
-            />
-          </div>
-          <div>
-            <label htmlFor="location">Location:</label>
-            <input
-              type="text"
-              name="location"
-              value={this.state.location}
-              onChange={this.handleInputChange}
-              style={inputStyle}
-            />
-          </div>
-          <button type="submit" style={buttonStyle}>
-            Update Profile
-          </button>
-        </form>
-      </div>
-    );
-  }
-}
-
-class DeregisterButton extends React.Component {
-  handleClick = () => {
-    // Call the provided callback function to deregister the user
-    this.props.onDeregister();
-  };
-
-  render() {
-    const deregisterStyle = {
-      border: "1px solid #ccc",
-      padding: "10px",
-      borderRadius: "5px",
-      margin: "10px",
-      backgroundColor: "#ffe5d9",
-    };
-
-    return (
-      <div style={deregisterStyle}>
-        <h2>Deregister User</h2>
-        <button onClick={this.handleClick} style={buttonStyle}>
-          Deregister User
-        </button>
       </div>
     );
   }
@@ -773,19 +824,18 @@ class LandingPage extends React.Component {
   render() {
     const titleStyle = {
       fontSize: "36px",
-      color: "#333"
+      color: "#333",
     };
 
-
     const paragraphStyle = {
-      fontSize: '18px',
-      color: "#666"
+      fontSize: "18px",
+      color: "#666",
     };
 
     const emphasizedParagraphStyle = {
       fontSize: "24px",
-      color: "#FF5733"
-    }
+      color: "#FF5733",
+    };
 
     return (
       <div>
@@ -795,7 +845,9 @@ class LandingPage extends React.Component {
           --We are here to make your interview preparation better. Explore, add,
           update, and delete questions easily with our user-friendly platform.
         </p>
-        <p style={emphasizedParagraphStyle}>Click the buttons above to navigate to different components</p>
+        <p style={emphasizedParagraphStyle}>
+          Click the buttons above to navigate to different components
+        </p>
       </div>
     );
   }

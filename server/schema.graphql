@@ -40,7 +40,7 @@ type Query {
 type Mutation {
   #USV Related  
   signUpUser(id: ID, name: String, email: String, profile: UserProfileInput): User
-  updateUserProfile(profile: UserProfileInput): User
+  updateUserProfile(id: ID, profile: UserProfileInput): User
   deregisterUser(id: ID): ID
   
   #QSV Related

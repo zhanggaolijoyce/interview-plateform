@@ -54,8 +54,8 @@ async function getUserProfileResolver(_, args)
     const { id } = args;
     console.log(id)
     console.log(1)
-    const user = await db.collection('users').findOne({ id: 1 });
-    // const user = await db.collection('users').findOne({ id: id });
+    // const user = await db.collection('users').findOne({ id: 1 });
+    const user = await db.collection('users').findOne({ id: id });
     console.log(2)
     if (!user) {
       throw new UserInputError('User not found.');
@@ -81,7 +81,6 @@ async function signUpUserResolver(_, args)
 {
   try {
     const { id, name, email, profile } = args;
-    console.log( id, name, email, profile);
     // Check if the user with the provided email already exists
     const existingUser = await db.collection('users').findOne({ email });
     
@@ -113,6 +112,7 @@ async function signUpUserResolver(_, args)
 async function updateUserProfileResolver(_, args) {
   try {
     const { id, profile } = args;
+    console.log(id, profile)
     const updatedUser = await db.collection('users').findOneAndUpdate(
       { id: id },
       { $set: { profile } },
