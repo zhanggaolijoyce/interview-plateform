@@ -143,9 +143,12 @@ async function deregisterUserResolver(_, args) {
 // Question Service (QSV) Resolvers
 async function addQuestionResolver(_, args) {
   try {
-    const { title } = args;
+    const { title, description, complexity, createdBy } = args;
     const newQuestion = {
       title,
+      description,
+      complexity,
+      createdBy
       // Add any other relevant properties for your question model
     };
     const result = await db.collection('questions').insertOne(newQuestion);
@@ -158,8 +161,8 @@ async function addQuestionResolver(_, args) {
 
 async function deleteQuestionResolver(_, args) {
   try {
-    const { questionId } = args;
-    const result = await db.collection('questions').deleteOne({ id: questionId });
+    const { title } = args;
+    const result = await db.collection('questions').deleteOne({ title: title });
     if (result.deletedCount === 0) {
       throw new UserInputError('Question not found.');
     }

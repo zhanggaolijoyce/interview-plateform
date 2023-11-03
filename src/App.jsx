@@ -137,12 +137,11 @@ class UserService extends React.Component {
 
       const data = await graphQLFetch(mutation, variables);
       const success = data.deregisterUser;
-      if(success){
+      if (success) {
         this.setState({ user: null });
       } else {
-        console.log("Deregister failed")
+        console.log("Deregister failed");
       }
-
 
       // Handle successful deregistration (e.g., show a success message)
     } catch (error) {
@@ -456,24 +455,27 @@ class QuestionService extends React.Component {
   async fetchAllQuestions() {
     try {
       const query = `
-          query {
-            getAllQuestions {
-              id
+          query($title: String, $description: String, $complexity: String, $createdBy: UserQuestionInput) {
+            getAllQuestions(title: $title, description: $description, complexity: $complexity, createdBy: $createdBy) {
               title
               description
               complexity
               createdBy {
-                id
-                name
-                email
+                userid,
+                username,
+                useremail
               }
             }
           }
         `;
-      const { id, title, description, complexity, createdBy } = this.state;
-      const variables = { id, title, description, complexity, createdBy };
+
+      console.log(this.state);
+
+      const { title, description, complexity, createdBy } = this.state;
+      const variables = { title, description, complexity, createdBy };
 
       const data = await graphQLFetch(query, variables);
+      console.log(data);
       this.setState({ questions: data.getAllQuestions });
     } catch (error) {
       console.error("Error fetching questions:", error);
@@ -485,18 +487,23 @@ class QuestionService extends React.Component {
     // Implement logic to add a new question and update the state
     try {
       const mutation = `
-          mutation AddQuestion($title: String, $description: String, $complexity: String) {
-            addQuestion(title: $title, description: $description, complexity: $complexity) {
-              id
+          mutation AddQuestion( $title: String, $description: String, $complexity: String, $createdBy: UserQuestionInput) {
+            addQuestion( title: $title, description: $description, complexity: $complexity, createdBy: $createdBy) {
               title
               description
               complexity
+              createdBy {
+                userid
+                username
+                useremail
+              }
             }
           }
         `;
 
-      const { title, description, complexity } = questionData;
-      const variables = { title, description, complexity };
+      const { title, description, complexity, createdBy } = questionData;
+      const variables = { title, description, complexity, createdBy };
+      console.log(variables);
 
       const data = await graphQLFetch(mutation, variables);
       this.setState((prevState) => ({
@@ -509,20 +516,22 @@ class QuestionService extends React.Component {
     }
   };
 
-  handleDeleteQuestion = async (questionId) => {
+  handleDeleteQuestion = async (questionTitle) => {
     // Implement logic to delete a question and update the state
     try {
       const mutation = `
-          mutation DeleteQuestion($id: ID) {
-            deleteQuestion(id: $id)
+          mutation DeleteQuestion($title: String) {
+            deleteQuestion(title: $title)
           }
         `;
 
-      const variables = { id: questionId };
+      const title = questionTitle;
+      const variables =  { title } ;
+      console.log(variables);
 
       await graphQLFetch(mutation, variables);
       this.setState((prevState) => ({
-        questions: prevState.questions.filter((q) => q.id == questionId),
+        questions: prevState.questions.filter((q) => q.title != questionTitle),
       }));
       // Handle successful deletion (e.g., show a success message)
     } catch (error) {
@@ -569,9 +578,9 @@ class QuestionService extends React.Component {
         <QuestionList
           questions={questions}
           onDeleteQuestion={this.handleDeleteQuestion}
+          onUpdateQuestion={this.handleUpdateQuestion}
         />
         <QuestionForm onAddQuestion={this.handleAddQuestion} />
-        <UpdateQuestionForm onUpdateQuestion={this.handleUpdateQuestion} />
       </div>
     );
   }
@@ -597,18 +606,26 @@ class QuestionList extends React.Component {
       <div style={containerStyle}>
         <h2>Question List</h2>
         {questions.map((question) => (
-          <div key={question.id}>
+          <div key={question.title}>
             <h3>Title: {question.title}</h3>
             <p>Description: {question.description}</p>
             <p>Complexity: {question.complexity}</p>
-            {/* <p>Created By: {question.createdBy}</p> */}
+            <p>
+              Created By: {question.createdBy.username} (id:{" "}
+              {question.createdBy.userid}, email:{question.createdBy.useremail})
+            </p>
             <button
-              onClick={() => onDeleteQuestion(question.id)}
+              onClick={() => onDeleteQuestion(question.title)}
               style={buttonStyle}
             >
               Delete
             </button>
-            {/* Add an update button and functionality here */}
+            <button
+              onClick={() => onUpdateQuestion(question.title)}
+              style={buttonStyle}
+            >
+              Update
+            </button>
           </div>
         ))}
       </div>
@@ -621,11 +638,10 @@ class QuestionForm extends React.Component {
     super();
     // Initialize form state
     this.state = {
-      id: "",
       title: "",
       description: "",
       complexity: "",
-      // createdBy:"",
+      createdBy: {},
     };
   }
 
@@ -636,12 +652,16 @@ class QuestionForm extends React.Component {
 
   handleSubmit = (e) => {
     e.preventDefault();
-    const { id, title, description, complexity } = this.state;
+    const form = document.forms.addquestion;
     const questionData = {
-      id,
-      title,
-      description,
-      complexity,
+      title: form.title.value,
+      description: form.description.value,
+      complexity: form.complexity.value,
+      createdBy: {
+        userid: form.userid.value,
+        username: form.username.value,
+        useremail: form.useremail.value,
+      },
     };
 
     // Call the provided callback function to add a new question
@@ -649,11 +669,12 @@ class QuestionForm extends React.Component {
 
     // Reset form fields
     this.setState({
-      id: "",
       title: "",
       description: "",
       complexity: "",
-      // createdBy: "",
+      userid: "",
+      username: "",
+      useremail: "",
     });
   };
 
@@ -669,17 +690,7 @@ class QuestionForm extends React.Component {
     return (
       <div style={addStyle}>
         <h2>Add New Question</h2>
-        <form onSubmit={this.handleSubmit}>
-          <div>
-            <label htmlFor="id">ID:</label>
-            <input
-              type="text"
-              name="id"
-              value={this.state.id}
-              onChange={this.handleInputChange}
-              style={inputStyle}
-            />
-          </div>
+        <form name="addquestion" onSubmit={this.handleSubmit}>
           <div>
             <label htmlFor="title">Title:</label>
             <input
@@ -705,6 +716,37 @@ class QuestionForm extends React.Component {
               type="text"
               name="complexity"
               value={this.state.complexity}
+              onChange={this.handleInputChange}
+              style={inputStyle}
+            />
+          </div>
+          <h3>Your Personal Information:</h3>
+          <div>
+            <label htmlFor="userid">Your Id:</label>
+            <input
+              type="text"
+              name="userid"
+              value={this.state.userid}
+              onChange={this.handleInputChange}
+              style={inputStyle}
+            />
+          </div>
+          <div>
+            <label htmlFor="username">Your name:</label>
+            <input
+              type="text"
+              name="username"
+              value={this.state.username}
+              onChange={this.handleInputChange}
+              style={inputStyle}
+            />
+          </div>
+          <div>
+            <label htmlFor="useremail">Your email:</label>
+            <input
+              type="text"
+              name="useremail"
+              value={this.state.useremail}
               onChange={this.handleInputChange}
               style={inputStyle}
             />
@@ -718,107 +760,6 @@ class QuestionForm extends React.Component {
   }
 }
 
-class UpdateQuestionForm extends React.Component {
-  constructor() {
-    super();
-    // Initialize form state
-    this.state = {
-      id: "",
-      title: "",
-      description: "",
-      complexity: "",
-      // createdBy:"",
-    };
-  }
-
-  handleInputChange = (e) => {
-    const { name, value } = e.target;
-    this.setState({ [name]: value });
-  };
-
-  handleSubmit = (e) => {
-    e.preventDefault();
-    const { id, title, description, complexity } = this.state;
-    const questionData = {
-      id,
-      title,
-      description,
-      complexity,
-    };
-
-    // Call the provided callback function to add a new question
-    this.props.onAddQuestion(questionData);
-
-    // Reset form fields
-    this.setState({
-      id: "",
-      title: "",
-      description: "",
-      complexity: "",
-      // createdBy: "",
-    });
-  };
-
-  render() {
-    const updateStyle = {
-      border: "1px solid #ccc",
-      padding: "10px",
-      borderRadius: "5px",
-      margin: "10px",
-      backgroundColor: "#d8e2dc",
-    };
-
-    return (
-      <div style={updateStyle}>
-        <h2>Update Question</h2>
-        <form onSubmit={this.handleSubmit}>
-          <div>
-            <label htmlFor="id">ID:</label>
-            <input
-              type="text"
-              name="id"
-              value={this.state.id}
-              onChange={this.handleInputChange}
-              style={inputStyle}
-            />
-          </div>
-          <div>
-            <label htmlFor="title">Title:</label>
-            <input
-              type="text"
-              name="title"
-              value={this.state.title}
-              onChange={this.handleInputChange}
-              style={inputStyle}
-            />
-          </div>
-          <div>
-            <label htmlFor="description">Description:</label>
-            <textarea
-              name="description"
-              value={this.state.description}
-              onChange={this.handleInputChange}
-              style={inputStyle}
-            />
-          </div>
-          <div>
-            <label htmlFor="complexity">Complexity:</label>
-            <input
-              type="text"
-              name="complexity"
-              value={this.state.complexity}
-              onChange={this.handleInputChange}
-              style={inputStyle}
-            />
-          </div>
-          <button type="submit" style={buttonStyle}>
-            Update Question
-          </button>
-        </form>
-      </div>
-    );
-  }
-}
 
 class LandingPage extends React.Component {
   render() {

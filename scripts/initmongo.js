@@ -28,14 +28,15 @@ db.createCollection("questions")
 
 // Insert a sample question with an "id" field
 db.questions.insertOne({
-  id: 1, // Unique ID for the question
+  // id: "Q1", // Unique ID for the question
   title: "Sample Question",
   description: "This is a sample interview question.",
-  createdBy: {
-    id:1,
-    name: "John Doe",
-    email: "johndoe@example.com",
-  },
   complexity: "Easy",
+  // createdBy: "John Doe"
+  createdBy: {
+    userid:1,
+    username: "John Doe",
+    useremail: "johndoe@example.com",
+  },
   //tags: ["interview", "sample"],
 })

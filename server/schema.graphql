@@ -20,11 +20,22 @@ input UserProfileInput {
 }
 
 type Question {
-  id: ID
   title: String
   description: String
   complexity: String
-  createdBy: User
+  createdBy: UserQuestion
+}
+
+type UserQuestion {
+  userid: ID,
+  username: String,
+  useremail: String
+}
+
+input UserQuestionInput {
+  userid: ID
+  username: String
+  useremail: String
 }
 
 ## Queries ##
@@ -33,7 +44,7 @@ type Query {
   getUserProfile(id: ID, name: String, email: String, profile: UserProfileInput): User
    
   #QSV related
-  getAllQuestions(id: ID, title: String, description: String, complexity: String): [Question]
+  getAllQuestions( title: String, description: String, complexity: String, createdBy: UserQuestionInput): [Question]
 }
 
 ## Mutations ##
@@ -44,7 +55,7 @@ type Mutation {
   deregisterUser(id: ID): ID
   
   #QSV Related
-  addQuestion(id: ID, title: String, description: String, complexity: String): Question
-  deleteQuestion(id: ID): ID
-  updateQuestion(id: ID, title: String, description: String, complexity: String): Question
+  addQuestion(title: String, description: String, complexity: String, createdBy: UserQuestionInput): Question
+  deleteQuestion(title: String): String
+  updateQuestion(title: String, description: String, complexity: String): Question
 }
