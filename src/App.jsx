@@ -194,6 +194,7 @@ class UserService extends React.Component {
     if (!user) {
       return (
         <div>
+          <h2>Please Sign up first</h2>
           <SignUpUserForm handleSignUpUser={this.handleSignUpUser} />
         </div>
       );
@@ -503,7 +504,7 @@ class QuestionService extends React.Component {
 
       const { title, description, complexity, createdBy } = questionData;
       const variables = { title, description, complexity, createdBy };
-      console.log(variables);
+      // console.log(variables);
 
       const data = await graphQLFetch(mutation, variables);
       this.setState((prevState) => ({
@@ -526,8 +527,8 @@ class QuestionService extends React.Component {
         `;
 
       const title = questionTitle;
-      const variables =  { title } ;
-      console.log(variables);
+      const variables = { title };
+      // console.log(variables);
 
       await graphQLFetch(mutation, variables);
       this.setState((prevState) => ({
@@ -540,27 +541,39 @@ class QuestionService extends React.Component {
     }
   };
 
-  handleUpdateQuestion = async (questionData) => {
+  handleUpdateQuestion = async (questionUpdateData) => {
     // Implement logic to update a question and update the state
     try {
       const mutation = `
-          mutation UpdateQuestion($id: ID, $title: String, $description: String, $complexity: String) {
-            updateQuestion(id: $id, title: $title, description: $description, complexity: $complexity) {
-              id
+          mutation UpdateQuestion($title: String, $description: String, $complexity: String) {
+            updateQuestion( title: $title, description: $description, complexity: $complexity) {
               title
               description
               complexity
+              createdBy {
+                userid
+                username
+                useremail
+              }
             }
           }
         `;
 
-      const { id, title, description, complexity } = questionData;
-      const variables = { id, title, description, complexity };
+      // console.log();
+
+      // const title = questionTitle.title;
+      // const createdBy = this.state.createdBy;
+      const { title, description, complexity } = questionUpdateData;
+      const variables = { title, description, complexity };
+
+      // console.log(this.state)
+      console.log(variables)
+
 
       const data = await graphQLFetch(mutation, variables);
       this.setState((prevState) => ({
         questions: prevState.questions.map((q) =>
-          q.id === id ? data.updateQuestion : q
+          q.title === title ? data.updateQuestion : q
         ),
       }));
       // Handle successful update (e.g., show a success message)
@@ -580,6 +593,7 @@ class QuestionService extends React.Component {
           onDeleteQuestion={this.handleDeleteQuestion}
           onUpdateQuestion={this.handleUpdateQuestion}
         />
+        <UpdateQuestionForm onUpdateQuestion={this.handleUpdateQuestion}/>
         <QuestionForm onAddQuestion={this.handleAddQuestion} />
       </div>
     );
@@ -588,14 +602,14 @@ class QuestionService extends React.Component {
 
 class QuestionList extends React.Component {
   render() {
-    const { questions, onDeleteQuestion, onUpdateQuestion } = this.props;
+    const { questions, onDeleteQuestion } = this.props;
 
     const containerStyle = {
       border: "1px solid #ccc",
       padding: "10px",
       borderRadius: "5px",
       margin: "10px",
-      backgroundColor: "#bde0fe",
+      backgroundColor: "#ffdccc",
     };
 
     if (questions.length === 0) {
@@ -619,12 +633,6 @@ class QuestionList extends React.Component {
               style={buttonStyle}
             >
               Delete
-            </button>
-            <button
-              onClick={() => onUpdateQuestion(question.title)}
-              style={buttonStyle}
-            >
-              Update
             </button>
           </div>
         ))}
@@ -715,6 +723,7 @@ class QuestionForm extends React.Component {
             <input
               type="text"
               name="complexity"
+              placeholder="Easy/Hard/Medium"
               value={this.state.complexity}
               onChange={this.handleInputChange}
               style={inputStyle}
@@ -760,6 +769,92 @@ class QuestionForm extends React.Component {
   }
 }
 
+class UpdateQuestionForm extends React.Component {
+  constructor() {
+    super();
+    // Initialize form state
+    this.state = {
+      title: "",
+      description: "",
+      complexity: "",
+    };
+  }
+
+  handleInputChange = (e) => {
+    const { name, value } = e.target;
+    this.setState({ [name]: value });
+  };
+
+  handleSubmit = (e) => {
+    e.preventDefault();
+    const form = document.forms.updatequestion;
+    const questionUpdateData = {
+      title: form.title.value,
+      description: form.description.value,
+      complexity: form.complexity.value,
+    };
+
+    this.props.onUpdateQuestion(questionUpdateData);
+
+    // Reset form fields
+    this.setState({
+      title: "",
+      description: "",
+      complexity: "",
+    });
+  };
+
+  render() {
+    const updateStyle = {
+      border: "1px solid #ccc",
+      padding: "10px",
+      borderRadius: "5px",
+      margin: "10px",
+      backgroundColor: "#d8e2dc",
+    };
+
+    return (
+      <div style={updateStyle}>
+        <h2>Update Question</h2>
+        <form name="updatequestion" onSubmit={this.handleSubmit}>
+        <div>
+            <label htmlFor="title">The question title that you want to update:</label>
+            <input
+              type="text"
+              name="title"
+              value={this.state.title}
+              onChange={this.handleInputChange}
+              style={inputStyle}
+            />
+          </div>
+          <div>
+            <label htmlFor="description">Description:</label>
+            <textarea
+              name="description"
+              value={this.state.description}
+              onChange={this.handleInputChange}
+              style={inputStyle}
+            />
+          </div>
+          <div>
+            <label htmlFor="complexity">Complexity:</label>
+            <input
+              type="text"
+              name="complexity"
+              placeholder="Easy/Hard/Medium"
+              value={this.state.complexity}
+              onChange={this.handleInputChange}
+              style={inputStyle}
+            />
+          </div>
+          <button type="submit" style={buttonStyle}>
+            Update Question
+          </button>
+        </form>
+      </div>
+    );
+  }
+}
 
 class LandingPage extends React.Component {
   render() {

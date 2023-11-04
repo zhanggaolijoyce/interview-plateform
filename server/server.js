@@ -174,10 +174,10 @@ async function deleteQuestionResolver(_, args) {
 
 async function updateQuestionResolver(_, args) {
   try {
-    const { questionId, text } = args;
+    const { title, description, complexity } = args;
     const updatedQuestion = await db.collection('questions').findOneAndUpdate(
-      { id: questionId },
-      { $set: { text } },
+      { title: title },
+      { $set: { description, complexity } },
       { returnOriginal: false }
     );
     if (!updatedQuestion.value) {
